@@ -15,6 +15,12 @@ class CollectorContractTests(unittest.TestCase):
         for forbidden in ("Stop-Process", "Unregister-ScheduledTask", "Remove-Item", "Set-ItemProperty", "Invoke-WebRequest", "Invoke-RestMethod", "Start-Process", "Invoke-Expression"):
             self.assertIsNone(re.search(r"(?im)^\s*" + re.escape(forbidden) + r"\b", script), forbidden)
 
+    def test_jsonl_records_have_flat_kind_field(self) -> None:
+        script = COLLECTOR.read_text(encoding="utf-8")
+        self.assertNotIn("Observation = @{", script)
+        for kind in ("process", "scheduled_task", "startup_entry"):
+            self.assertRegex(script, "kind\\s*=\\s*'" + kind + "'")
+
     def test_sensitive_command_details_require_switch(self) -> None:
         script = COLLECTOR.read_text(encoding="utf-8")
         self.assertIn("[switch]$IncludeCommandDetails", script)
