@@ -116,7 +116,7 @@ sentinel-ir-audit scan --input examples/synthetic-windows-observations.jsonl \
 - The collector is best effort; permission-denied data can be missing.
 - The report intentionally omits raw command lines, but entity names and local file paths in snapshots may still be sensitive.
 - The project has not been validated as a comprehensive threat detector or tested across all Windows versions.
-- PowerShell syntax and runtime checks run in Windows CI; tests outside Windows cannot exercise the collector.
+- PowerShell syntax is checked in Windows CI; the collector has not yet been runtime-validated across Windows versions.
 
 Please read [SECURITY.md](SECURITY.md) before submitting reports.
 
