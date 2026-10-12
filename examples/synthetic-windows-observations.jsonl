@@ -1,0 +1,7 @@
+{"kind":"process","name":"powershell.exe","executable_path":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","command_line":"powershell.exe -NoProfile -EncodedCommand UwB5AG4AdABoAGUAdABpAGMA","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"scheduled_task","task_name":"DemoTempUpdater","task_path":"\\Demo\\","executable":"C:\\Users\\Example\\AppData\\Local\\Temp\\demo-updater.exe","arguments":"","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"startup_entry","name":"DemoHiddenTask","registry_key":"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run","command":"powershell.exe -WindowStyle Hidden -File C:\\Users\\Example\\AppData\\Local\\Temp\\demo.ps1","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"process","name":"svchost.exe","executable_path":"C:\\Users\\Example\\Downloads\\svchost.exe","command_line":"","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"process","name":"notepad.exe","executable_path":"C:\\Windows\\System32\\notepad.exe","command_line":"","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"scheduled_task","task_name":"DemoApprovedBackup","executable":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","arguments":"-NoProfile -File C:\\Scripts\\backup.ps1","timestamp":"2026-01-01T12:00:00Z"}
+{"kind":"scheduled_task","task_name":"DemoDownloadJob","executable":"C:\\Users\\Example\\Downloads\\demo.exe","arguments":"","timestamp":"2026-01-01T12:00:00Z"}
