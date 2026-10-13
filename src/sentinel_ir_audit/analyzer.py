@@ -4,6 +4,7 @@ These are triage signals, not proof of compromise. No commands from input run.
 """
 
 from dataclasses import asdict, dataclass
+import ntpath
 import re
 
 from .schema import Observation
@@ -25,10 +26,11 @@ SCRIPT_HOST = re.compile(
     r"(?i)(?<![a-z0-9_])(?:powershell|pwsh|wscript|cscript|mshta)(?:\.exe)?\b"
 )
 SYSTEM_PROCESSES = frozenset(("svchost.exe", "lsass.exe", "services.exe", "winlogon.exe"))
-TRUSTED_SYSTEM_DIR = re.compile(
-    r"(?i)^(?:[a-z]:\\windows\\(?:system32|syswow64)\\|"
-    r"%(?:windir|systemroot)%\\(?:system32|syswow64)\\)"
+TRUSTED_SYSTEM_PATH = re.compile(
+    r"(?i)^(?:[a-z]:\\windows\\(?:system32|syswow64)|"
+    r"%(?:windir|systemroot)%\\(?:system32|syswow64))\\([^\\]+)$"
 )
+
 
 
 @dataclass(frozen=True)
@@ -54,6 +56,13 @@ class Finding:
 
 def _windows_path(value: str) -> str:
     return value.strip().strip('"\'').replace("/", "\\").lower()
+
+
+def _trusted_system_image_path(path: str, expected_name: str) -> bool:
+    """Normalize Windows directory traversals and check the actual image filename."""
+    normalized = ntpath.normpath(_windows_path(path))
+    match = TRUSTED_SYSTEM_PATH.fullmatch(normalized)
+    return bool(match and match.group(1).lower() == expected_name.lower())
 
 
 def _command_text(obs: Observation) -> str:
@@ -152,7 +161,7 @@ def analyze(obs: Observation) -> list[Finding]:
     if obs.kind == "process":
         name = obs.get("name").lower()
         path = _windows_path(obs.get("executable_path"))
-        if name in SYSTEM_PROCESSES and path and not TRUSTED_SYSTEM_DIR.search(path):
+        if name in SYSTEM_PROCESSES and path and not _trusted_system_image_path(path, name):
             results.append(_make(
                 obs, "SIA-004", "high", "System process name outside an expected Windows directory",
                 "A process uses a Windows system process name but has an unexpected executable location.",

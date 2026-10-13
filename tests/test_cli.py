@@ -73,6 +73,29 @@ class CliTests(unittest.TestCase):
             self.assertEqual(allowed, 0)
             self.assertNotEqual(output.read_text(), "existing data")
 
+    def test_duplicate_kind_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            bad = Path(directory) / "bad.jsonl"
+            bad.write_text('{"kind":"process","kind":"scheduled_task","name":"demo","task_name":"t"}\n')
+            with self.assertRaisesRegex(Exception, "invalid observation"):
+                scan(bad)
+
+    def test_nested_duplicate_keys_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            bad = Path(directory) / "bad.jsonl"
+            bad.write_text('{"kind":"process","name":"demo","unknown":{"x":1,"x":2}}\n')
+            with self.assertRaisesRegex(Exception, "invalid observation"):
+                scan(bad)
+
+    def test_missing_input_creates_no_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            missing = Path(directory) / "absent.jsonl"
+            output = Path(directory) / "out.jsonl"
+            with contextlib.redirect_stderr(io.StringIO()):
+                status = main(["scan", "--input", str(missing), "--output", str(output)])
+            self.assertEqual(status, 2)
+            self.assertFalse(output.exists())
+
     def test_unhashable_kind_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             bad = Path(directory) / "bad.jsonl"

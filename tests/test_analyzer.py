@@ -42,6 +42,15 @@ class AnalyzerTests(unittest.TestCase):
     def test_system_process_system32_path(self) -> None:
         self.assertNotIn("SIA-004", flags({"kind": "process", "name": "svchost.exe", "executable_path": "C:\\Windows\\System32\\svchost.exe"}))
 
+    def test_system_process_normalizes_parent_directory_segments(self) -> None:
+        self.assertIn("SIA-004", flags({"kind": "process", "name": "svchost.exe", "executable_path": "C:\\Windows\\System32\\..\\Temp\\svchost.exe"}))
+
+    def test_system_process_requires_matching_executable_basename(self) -> None:
+        self.assertIn("SIA-004", flags({"kind": "process", "name": "svchost.exe", "executable_path": "C:\\Windows\\System32\\different.exe"}))
+
+    def test_system_process_system32_mixed_case_is_allowed(self) -> None:
+        self.assertNotIn("SIA-004", flags({"kind": "process", "name": "SvChOsT.ExE", "executable_path": "c:\\WiNdOwS\\SyStEm32\\SvChOsT.ExE"}))
+
     def test_system_process_unknown_path_not_flagged(self) -> None:
         self.assertNotIn("SIA-004", flags({"kind": "process", "name": "svchost.exe", "executable_path": ""}))
 
