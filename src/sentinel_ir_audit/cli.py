@@ -19,6 +19,16 @@ class ScanError(Exception):
     """User-facing failure for invalid input or unsafe output paths."""
 
 
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject ambiguous JSON objects, including duplicates in nested data."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ScanError("duplicate JSON object field")
+        result[key] = value
+    return result
+
+
 def _ensure_paths(input_path: Path, output_path: Path, summary_path: Path | None, overwrite: bool) -> None:
     targets = [input_path.resolve(), output_path.resolve()]
     if summary_path is not None:
@@ -44,9 +54,9 @@ def scan(input_path: Path) -> tuple[list[dict[str, object]], dict[str, object]]:
                 if record_count >= MAX_RECORDS:
                     raise ScanError(f"more than {MAX_RECORDS} records")
                 try:
-                    item = json.loads(raw)
+                    item = json.loads(raw, object_pairs_hook=_reject_duplicate_keys)
                     observation = parse_observation(item, physical_line)
-                except (ValueError, UnicodeError, ObservationError) as exc:
+                except (ValueError, UnicodeError, ObservationError, ScanError) as exc:
                     # Do not echo raw input (potentially contains secrets).
                     raise ScanError(f"line {physical_line}: invalid observation ({type(exc).__name__})") from exc
                 record_count += 1
@@ -64,10 +74,10 @@ def scan(input_path: Path) -> tuple[list[dict[str, object]], dict[str, object]]:
     return findings, summary
 
 
-def _write_json(path: Path, objects: list[dict[str, object]] | dict[str, object], jsonl: bool) -> None:
+def _write_json(path: Path, objects: list[dict[str, object]] | dict[str, object], jsonl: bool, overwrite: bool) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     # Writes are performed only after all input passes validation.
-    with path.open("w", encoding="utf-8", newline="\n") as result:
+    with path.open("w" if overwrite else "x", encoding="utf-8", newline="\n") as result:
         if jsonl:
             for item in objects:
                 result.write(json.dumps(item, ensure_ascii=False, sort_keys=True) + "\n")
@@ -90,9 +100,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         _ensure_paths(args.input, args.output, args.summary, args.overwrite)
         findings, summary = scan(args.input)
-        _write_json(args.output, findings, jsonl=True)
+        _write_json(args.output, findings, jsonl=True, overwrite=args.overwrite)
         if args.summary:
-            _write_json(args.summary, summary, jsonl=False)
+            _write_json(args.summary, summary, jsonl=False, overwrite=args.overwrite)
     except (OSError, ScanError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
