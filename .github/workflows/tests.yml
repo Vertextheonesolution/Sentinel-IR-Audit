@@ -44,3 +44,39 @@ jobs:
             exit 1
           }
           Write-Host 'PowerShell collector syntax is valid.'
+
+  windows-collector-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect privacy-default observations
+        shell: powershell
+        run: |
+          $snapshot = Join-Path $env:RUNNER_TEMP 'sentinel-smoke.jsonl'
+          .\collectors\Collect-WindowsSnapshot.ps1 -OutputPath $snapshot
+          if (-not (Test-Path -LiteralPath $snapshot)) { throw 'Snapshot missing' }
+          $rows = @(Get-Content -LiteralPath $snapshot | Where-Object { $_.Trim() })
+          if ($rows.Count -eq 0) { throw 'No observations' }
+          foreach ($line in $rows) {
+            $record = $line | ConvertFrom-Json
+            if ($record.kind -notin @('process','scheduled_task','startup_entry')) { throw 'Unexpected record type' }
+            foreach ($field in @('command_line','arguments','command')) {
+              if ($record.PSObject.Properties.Name -contains $field) {
+                if ($record.$field) { throw "Sensitive $field unexpectedly populated" }
+              }
+            }
+          }
+          Write-Host "Collected $($rows.Count) default-private observations."
+      - name: Analyze collected snapshot
+        shell: powershell
+        env:
+          PYTHONPATH: src
+        run: |
+          $snapshot = Join-Path $env:RUNNER_TEMP 'sentinel-smoke.jsonl'
+          python -m sentinel_ir_audit scan --input $snapshot --output (Join-Path $env:RUNNER_TEMP 'findings.jsonl') --summary (Join-Path $env:RUNNER_TEMP 'summary.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Analyzer failed' }
+          $result = Get-Content (Join-Path $env:RUNNER_TEMP 'summary.json') -Raw | ConvertFrom-Json
+          if ($result.observations -lt 1) { throw 'No observations analyzed' }
