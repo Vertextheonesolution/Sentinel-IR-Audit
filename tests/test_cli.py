@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
-from sentinel_ir_audit.cli import main, scan
+from sentinel_ir_audit.cli import MAX_LINE_BYTES, ScanError, main, scan
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "examples" / "synthetic-windows-observations.jsonl"
@@ -102,6 +103,25 @@ class CliTests(unittest.TestCase):
             bad.write_text('{"kind":[],"name":"demo"}\n')
             with self.assertRaisesRegex(Exception, "invalid observation"):
                 scan(bad)
+
+    def test_oversized_line_is_rejected_with_bounded_read(self) -> None:
+        class GuardedInput(io.BytesIO):
+            def __init__(self, payload: bytes) -> None:
+                super().__init__(payload)
+                self.read_limits: list[int] = []
+
+            def readline(self, size: int = -1) -> bytes:
+                self.read_limits.append(size)
+                if size <= 0 or size > MAX_LINE_BYTES + 1:
+                    raise AssertionError("unbounded JSONL input read")
+                return super().readline(size)
+
+        source = GuardedInput(b"x" * (MAX_LINE_BYTES + 3) + b"\n")
+        with mock.patch.object(Path, "open", return_value=source):
+            with self.assertRaisesRegex(ScanError, "exceeds"):
+                scan(Path("synthetic-overlong.jsonl"))
+
+        self.assertEqual(source.read_limits, [MAX_LINE_BYTES + 1])
 
     def test_large_line_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -46,7 +46,12 @@ def scan(input_path: Path) -> tuple[list[dict[str, object]], dict[str, object]]:
     record_count = 0
     try:
         with input_path.open("rb") as source:
-            for physical_line, raw in enumerate(source, start=1):
+            # Limit each readline before allocating its contents: iteration over
+            # a binary file otherwise buffers an entire attacker-sized line before
+            # the length check below can reject it.
+            for physical_line, raw in enumerate(
+                iter(lambda: source.readline(MAX_LINE_BYTES + 1), b""), start=1
+            ):
                 if len(raw) > MAX_LINE_BYTES:
                     raise ScanError(f"line {physical_line}: exceeds {MAX_LINE_BYTES} bytes")
                 if not raw.strip():
