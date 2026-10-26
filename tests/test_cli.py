@@ -116,7 +116,7 @@ class CliTests(unittest.TestCase):
                     raise AssertionError("unbounded JSONL input read")
                 return super().readline(size)
 
-        source = GuardedInput(b"x" * (MAX_LINE_BYTES + 3) + b"\\n")
+        source = GuardedInput(b"x" * (MAX_LINE_BYTES + 3) + b"\n")
         with mock.patch.object(Path, "open", return_value=source):
             with self.assertRaisesRegex(ScanError, "exceeds"):
                 scan(Path("synthetic-overlong.jsonl"))
