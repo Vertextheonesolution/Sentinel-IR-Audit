@@ -10,9 +10,17 @@ This document distinguishes public defensive engineering work from professional 
 - Engineering design: offline Python JSONL triage, optional audit-only Windows PowerShell inventory collector, five documented detection heuristics, conservative privacy defaults, malformed-input handling, regression tests, and a threat model.
 - Community feedback channel: [Issue #2](https://github.com/Vertextheonesolution/Sentinel-IR-Audit/issues/2).
 
+## Public upstream acknowledgement and independently shipped fixes (verified October 29, 2026)
+
+- **Karakeep, official release v0.34.0**: the maintainers explicitly credit [@Vertextheonesolution](https://github.com/Vertextheonesolution) in their [October 17 release notes](https://github.com/karakeep-app/karakeep/releases/tag/v0.34.0) for reporting a list-hierarchy cycle issue, with references to GHSA-892w-x93w-2fqp and [fix PR #3199](https://github.com/karakeep-app/karakeep/pull/3199). The maintainer-authored fix PR was **merged October 17**. This is independently verifiable public reporter credit and a shipped fix; it is not evidence of a CVE assignment or a merged PR authored by this account.
+- **Tandoor Recipes, official release 2.7.0**: the [October 23 release notes](https://github.com/TandoorRecipes/recipes/releases/tag/2.7.0) explicitly record a fix for private-recipe overview disclosure in the shopping-list API, linking [GHSA-pcq2-64qw-jm4x](https://github.com/TandoorRecipes/recipes/security/advisories/GHSA-pcq2-64qw-jm4x). This verifies upstream remediation. The release note **does not name a reporter**, so this release alone does not independently verify this account's disclosure credit.
+- **filex, previously reported public advisory credit**: see [GHSA-9vw2-cpv2-6v73](https://github.com/BRF-Tech/filex/security/advisories/GHSA-9vw2-cpv2-6v73). Earlier evidence review reported public reporter credit, but it was not independently re-fetched for this October 29 update. Confirm the public credit on the primary advisory before using it as independently reverified evidence.
+
+No CVE identifier, bounty payment, upstream maintainer appointment, or Anthropic approval is inferred from the above. Keep nonpublic report details, prepatch payloads, and private maintainer correspondence out of this public repository.
+
 ## External open-source contributions (pending upstream review)
 
-The following contributions were submitted from the [Vertextheonesolution](https://github.com/Vertextheonesolution) account. They are **open pull requests**, not merged or formally accepted contributions as of October 13, 2026:
+The following contributions were submitted from the [Vertextheonesolution](https://github.com/Vertextheonesolution) account. They are **open pull requests**, not merged or formally accepted contributions as of October 29, 2026:
 
 - [Safety CLI PR #924 — Fix pytest invalid dist name metadata](https://github.com/pyupio/safety/pull/924): guard an informational pytest distribution report against missing and invalid package `Name` metadata. Includes a synthetic regression test. Status at last verification: open, upstream CI marked `action_required`.
 - [Yelp detect-secrets PR #1003 — Fix bound audit code snippets](https://github.com/Yelp/detect-secrets/pull/1003): bound overly long audit-context display lines without hiding the identified secret. Includes synthetic tests. Status at last verification: open, upstream CI marked `action_required`; no maintainer review yet.
@@ -31,6 +39,6 @@ Third-party adoption must be established through authentic external usage and ma
 
 ## Evidence-based application wording
 
-> I maintain a public, defensive security utility for offline Windows security-observation triage. The repository includes an audit-only Windows collector, reproducible synthetic test fixtures, documented heuristics, automated Linux/Windows testing, input validation safeguards, and a public change history. The code and CI records are provided as evidence of hands-on defensive security engineering. I do not claim CVE credit, accepted vulnerability-disclosure status, bug-bounty standing, or independent project adoption on the strength of this repository.
+> I maintain a public, defensive security utility for offline Windows security-observation triage, with synthetic regression tests, constrained input handling, and automated checks. Separately, Karakeep's official v0.34.0 release credits my GitHub account (@Vertextheonesolution) as the reporter of a list-hierarchy vulnerability and references the merged maintainer fix (#3199). Tandoor Recipes' official 2.7.0 release documents remediation of the shopping-list private-recipe disclosure identified by GHSA-pcq2-64qw-jm4x; attribution to my account requires separate maintainer evidence. I make no claim of a CVE assignment or Anthropic CVP approval.
 
-This statement describes public technical work; it does not assert eligibility under any specific verification program.
+This is publicly checkable technical evidence, not a guarantee of eligibility or approval. For a CVP application, corroborate any additional disclosures through their public advisories or private maintainer acknowledgements, without publishing confidential details.
